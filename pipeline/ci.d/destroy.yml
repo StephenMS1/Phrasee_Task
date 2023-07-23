@@ -1,0 +1,3 @@
+.destroy:
+  script:
+    - <series of commands that result in destroy of service/infra>

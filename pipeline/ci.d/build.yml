@@ -1,0 +1,3 @@
+.build:
+  script:
+    - <series of commands that result in build of service/infra>

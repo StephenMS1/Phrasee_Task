@@ -1,0 +1,69 @@
+image:
+  name: <name of images intended to be used as gitlab runner container>
+  entrypoint: [""]
+
+
+stages:
+  - lint
+  - test
+  - build_test
+  - build_prod
+  - destroy
+
+include:
+  - local: '/ci.d/lint.yml'
+  - local: '/ci.d/test.yml'
+  - local: '/ci.d/build.yml'
+  - local: '/ci.d/destroy.yml'
+
+run-linter:
+  stage: lint
+  extends:
+    - .lint
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "commit"'
+
+test-suite:
+  stage: test
+  extends:
+    - .test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "commit"'
+  tags:
+    - specific_runner
+
+build_test:
+  stage: build_test
+  variables:
+   - target_env: "test"
+  extends:
+    - .build
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $EXAMPLE_VAR == "test"'
+      if: '$CI_PIPELINE_SOURCE == "commit" && $CI_COMMIT_BRANCH != "main"'
+  tags:
+    - specific_runner
+
+build:
+  stage: build_prod
+  variables:
+   - target_env: "prod"
+  extends:
+    - .build
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $EXAMPLE_VAR == "prod"'
+    - if:  '$CI_PIPELINE_SOURCE == "commit" && $CI_COMMIT_BRANCH == "main"'
+  tags:
+    - specific_runner
+
+destroy:
+  stage: destroy
+  extends:
+    - .destroy
+  rules:
+    - if: '$DESTROY_INFRA == "yes" && $CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+  tags:
+    - specific_runner

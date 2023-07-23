@@ -1,0 +1,3 @@
+.test:
+  script:
+    - <series of commands that test the comitted code>

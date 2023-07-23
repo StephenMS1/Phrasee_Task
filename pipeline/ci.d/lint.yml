@@ -1,0 +1,3 @@
+.lint:
+  script:
+    - <series of commands that lint the committed code>
